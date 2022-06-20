@@ -1,5 +1,6 @@
 from http import HTTPStatus
 from flask import request
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask_restful import Resource
 from mysql.connector.errors import Error
 from mysql_connection import get_connection
@@ -9,6 +10,7 @@ class RecipeResource(Resource) :
     
     # 클라이언트로부터 /recipes/3 이런식으로 경로를 처리하므로
     # 숫자는 바뀌므로, 변수로 처리해준다.
+    
     def get(self, recipe_id) :
         
         # 디비에서, recipe_id 에 들어있는 값에 해당되는
@@ -60,10 +62,13 @@ class RecipeResource(Resource) :
 
 
     # 데이터를 업데이트하는 API들은 put 함수를 사용한다.
+    @jwt_required()
     def put(self, recipe_id) :
         
         # body에서 전달된 데이터를 처리
         data = request.get_json()
+
+        user_id = get_jwt_identity()
         
         # 디비 업데이트 실행코드
         try :
@@ -71,7 +76,34 @@ class RecipeResource(Resource) :
             # 1. DB에 연결
             connection = get_connection()
 
-            
+            ### 먼저 recipe_id 에 들어있는 user_id가
+            ### 이 사람인지 먼저 확인한다.
+
+            query = '''select user_id
+                        from recipe
+                        where id = %s;'''
+            record = (recipe_id ,)
+            cursor = connection.cursor(dictionary = True)
+            cursor.execute(query, record)
+            result_list = cursor.fetchall()
+
+            ### 추가 예외처리
+            # if len(result_list) == 0 :
+            #     cursor.close()
+            #     connection.close()
+            #     return {'error' : '레시피 아이디가 잘못되었습니다.'}, 400
+
+            recipe = result_list[0]
+
+            if recipe['user_id'] != user_id :
+                cursor.close()
+                connection.close()
+                return {'error' : '남의 레시피를 수정할 수 없습니다.'}, 401
+
+
+            ### 여기까지 토큰적용을 위한 추가코드
+
+
             # 2. 쿼리문 만들기
             query ='''update recipe
                     set name = %s, description = %s, 
