@@ -38,3 +38,16 @@ pip install psycopg2-binary passlib
 
 # 암호화가 중요하다
 user_id의 암호화
+
+# 로그아웃
+1. 토큰을 set에 보내서 중복된 것들을 모아놓음
+    1. 그래서 user.py에 set 코드 작성
+    2. app.py 에 작성
+누군가 만료된 토큰으로 로그인 하려할떄 방지함
+그러려면,? 애초에 로그인 할때 set을 거쳐서 가야됨
+
+헤더에 토큰이 들어있으면 blocklist를 제일먼저 거쳐서 확인함
+
+# dev prod
+dev 는 디밸롭 개발환경
+prod 는 서버환경

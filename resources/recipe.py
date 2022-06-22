@@ -41,7 +41,6 @@ class RecipeListResource(Resource) :
                     values
                     ( %s, %s, %s, %s, %s);'''
 
-            # record = (name, description, cook_time, directions)
             record = (data['name'], data['description'],
             data['cook_time'], data['directions'], user_id )
 
@@ -101,6 +100,7 @@ class RecipeListResource(Resource) :
 
             # 중요! 디비에서 가져온 timestamp 난
             # 파이썬의 datetime 으로 자동 변경된다.
+            # json은 datetime 같은게 없다 그냥 문자열이다
             # 문제는! 이 데이터를 json 으로 바로 보낼 수 없으므로,
             # 문자열로 바꿔서 다시 저장해서 보낸다.
             i = 0
